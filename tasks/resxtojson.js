@@ -73,43 +73,45 @@ module.exports = function(grunt) {
         File.mkdir(f.dest);
       }
 
-      sourcePath = f.src[0];
-
-      if (!File.exists(sourcePath)) {
-        throw new Error(sprintf('Source file "%s" not found.', f.src));
-      }
-
-      fileContent = File.read(sourcePath);
-      baseTranslation = resxtojson(fileContent, options.matchPattern);
-      sourceFileName = getFileNameFromPath(sourcePath);
-      outFilePath = path.join(f.dest, sourceFileName.replace('.resx', '.js'));
-      writeJSONOutput(outFilePath, JSON.stringify(baseTranslation));
-
-      var sourceFiles = File.expand(
-        [sourcePath.replace('.resx', '.*.resx')]);
-
-      sourceFiles.filter(function(filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!File.exists(filepath)) {
-          Warn(sprintf('Source file "%s" not found.', filepath));
-          return false;
-        } else {
-          return true;
+      f.src.forEach(function (src) {
+        sourcePath = src;
+  
+        if (!File.exists(sourcePath)) {
+          throw new Error(sprintf('Source file "%s" not found.', src));
         }
-      }).forEach(function(filePath) {
-        var jsonFromResx;
-
-        fileContent = File.read(filePath);
-        try
-        {
-          jsonFromResx = extend({}, baseTranslation, resxtojson(fileContent, options.matchPattern));
-        } catch (key) {
-          throw new Error(sprintf('Error converting %s -> Value of %s cannot be parsed.', outFilePath, key));
-        }
-
-        fileName = getFileNameFromPath(filePath);
-        outFilePath = path.join(f.dest, fileName.replace('.resx', '.js'));
-        writeJSONOutput(outFilePath, JSON.stringify(jsonFromResx));
+  
+        fileContent = File.read(sourcePath);
+        baseTranslation = resxtojson(fileContent, options.matchPattern);
+        sourceFileName = getFileNameFromPath(sourcePath);
+        outFilePath = path.join(f.dest, sourceFileName.replace('.resx', '.js'));
+        writeJSONOutput(outFilePath, JSON.stringify(baseTranslation));
+  
+        var sourceFiles = File.expand(
+          [sourcePath.replace('.resx', '.*.resx')]);
+  
+        sourceFiles.filter(function(filepath) {
+          // Warn on and remove invalid source files (if nonull was set).
+          if (!File.exists(filepath)) {
+            Warn(sprintf('Source file "%s" not found.', filepath));
+            return false;
+          } else {
+            return true;
+          }
+        }).forEach(function(filePath) {
+          var jsonFromResx;
+  
+          fileContent = File.read(filePath);
+          try
+          {
+            jsonFromResx = extend({}, baseTranslation, resxtojson(fileContent, options.matchPattern));
+          } catch (key) {
+            throw new Error(sprintf('Error converting %s -> Value of %s cannot be parsed.', outFilePath, key));
+          }
+  
+          fileName = getFileNameFromPath(filePath);
+          outFilePath = path.join(f.dest, fileName.replace('.resx', '.js'));
+          writeJSONOutput(outFilePath, JSON.stringify(jsonFromResx));
+        });
       });
     });
   });
